@@ -132,5 +132,8 @@ def save_ip_to_json(file_path, num_ips):
 
     print(f"Added {num_ips} IP addresses with HTTP request status, geolocation, DNS info, ISP, SSL, and port scan results to {file_path}.")
 
-# Example usage:
-save_ip_to_json('ips.json', 100)
+# runs in batches of 100
+while True: 
+ save_ip_to_json('ips.json', 100)
+ time.sleep(50)
+ print("Taking a break...")

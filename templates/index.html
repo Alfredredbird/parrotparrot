@@ -98,7 +98,9 @@
                 const dnsCounts = {};
                 const hostnameCounts = { known: 0, unknown: 0 };
                 const hourCounts = {};
-
+                const isp = {};
+                const sslcetcount = {};
+                const city = {};
                 // Process IP data for status and port statistics
                 for (const ip in data) {
                     const status = data[ip].code;
