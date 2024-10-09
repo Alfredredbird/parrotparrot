@@ -90,6 +90,21 @@ def summary():
     except (FileNotFoundError, json.JSONDecodeError):
         return jsonify({})
 
+# Route to display IP data
+@app.route('/display_ip_data')
+def display_ip_data():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        with open('ips.json', 'r') as file:
+            data = json.load(file)
+        
+        return render_template('ip_data.html', ip_data=data)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return render_template('ip_data.html', ip_data={})
+
+
 # Route to log out
 @app.route('/logout')
 def logout():

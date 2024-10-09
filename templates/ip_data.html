@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Data</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>IP Address Data</h1>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger mb-3">Logout</a>
+        <form method="get" action="{{ url_for('display_ip_data') }}" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request.args.get('search', '') }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Code</th>
+                        <th>Ping Time</th>
+                        <th>Open Ports</th>
+                        <th>City</th>
+                        <th>Region</th>
+                        <th>Country</th>
+                        <th>ISP Info</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set search_query = request.args.get('search', '').lower() %}
+                    {% for ip, info in ip_data.items() %}
+                        {% set city = info.geolocation.city if info.geolocation and 'city' in info.geolocation else '' %}
+                        {% set region = info.geolocation.region if info.geolocation and 'region' in info.geolocation else '' %}
+                        {% set country = info.geolocation.country if info.geolocation and 'country' in info.geolocation else '' %}
+                        {% set isp_info = info.isp_info if 'isp_info' in info else '' %}
+                        
+                        {% if search_query in ip or 
+                              search_query in city.lower() or 
+                              search_query in region.lower() or 
+                              search_query in country.lower() or 
+                              search_query in isp_info.lower() %}
+                        <tr>
+                            <td>{{ ip }}</td>
+                            <td>{{ info.code }}</td>
+                            <td>{{ info.ping_time }}</td>
+                            <td>{{ info.open_ports | join(', ') }}</td>
+                            <td>{{ city }}</td>
+                            <td>{{ region }}</td>
+                            <td>
+                                {% if country %}
+                                    {% set flag_path = 'flags/' + country.upper() + '-128.png' %}
+                                    <img src="{{ url_for('static', filename=flag_path) }}" 
+                                         alt="{{ country }} flag" 
+                                         style="width: 30px; height: 20px;"
+                                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='flags/unknown.png') }}';">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='flags/unknown.png') }}" 
+                                         alt="Unknown flag" 
+                                         style="width: 30px; height: 20px;">
+                                {% endif %}
+                            </td>
+                            <td>{{ isp_info }}</td>
+                            <td>{{ info.timestamp }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
