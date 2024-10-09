@@ -107,6 +107,7 @@ def scan_ip(ip, ip_data, file_path):
 
     with lock:
         ip_data[ip] = ip_info
+        # Update the JSON file with the current state of ip_data
         with open(file_path, 'w') as file:
             json.dump(ip_data, file, indent=4)
 
@@ -134,6 +135,7 @@ def save_ip_to_json(file_path, num_ips):
 
 # runs in batches of 100
 while True: 
- save_ip_to_json('ips.json', 100)
- time.sleep(50)
- print("Taking a break...")
+    save_ip_to_json('ips.json', 100)
+    print("Taking a break...")
+    time.sleep(50)
+    
