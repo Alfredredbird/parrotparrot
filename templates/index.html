@@ -38,6 +38,7 @@
                     </div>
                     <div class="card-body">
                         <canvas id="pingChart" height="200"></canvas>
+                        <div class="mt-2 text-center" id="averagePing"></div> <!-- Display average ping here -->
                     </div>
                 </div>
             </div>
@@ -71,6 +72,17 @@
                     </div>
                 </div>
             </div>
+            <!-- New Card for Hostname Comparison -->
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Hostname Comparison
+                    </div>
+                    <div class="card-body">
+                        <canvas id="hostnameComparisonChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -84,6 +96,8 @@
                 const pingTimes = [];
                 const geoCounts = {};
                 const dnsCounts = {};
+                const hostnameCounts = { known: 0, unknown: 0 };
+                const hourCounts = {};
 
                 // Process IP data for status and port statistics
                 for (const ip in data) {
@@ -108,7 +122,22 @@
                     // Process DNS data
                     const hostname = data[ip].dns_info.hostname || 'Unknown';
                     dnsCounts[hostname] = (dnsCounts[hostname] || 0) + 1;
+
+                    // Count known and unknown hostnames
+                    if (hostname !== "Unknown") {
+                        hostnameCounts.known++;
+                    } else {
+                        hostnameCounts.unknown++;
+                    }
+
+                    // Process summary by hour
+                    const hour = new Date(data[ip].timestamp).getHours(); // Assuming a timestamp is available
+                    hourCounts[hour] = (hourCounts[hour] || 0) + 1;
                 }
+
+                // Calculate average ping time
+                const averagePing = pingTimes.length > 0 ? (pingTimes.reduce((a, b) => a + b, 0) / pingTimes.length).toFixed(2) : 0;
+                document.getElementById('averagePing').innerText = `Average Ping: ${averagePing} ms`;
 
                 // Create chart for status codes
                 const statusChartCtx = document.getElementById('statusChart').getContext('2d');
@@ -179,6 +208,29 @@
                     }
                 });
 
+                // Create chart for summary by hour
+                const summaryHourChartCtx = document.getElementById('summaryHourChart').getContext('2d');
+                const summaryHourChart = new Chart(summaryHourChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({ length: 24 }, (_, i) => i), // 0-23 hours
+                        datasets: [{
+                            label: 'Summary by Hour',
+                            data: Array.from({ length: 24 }, (_, i) => hourCounts[i] || 0),
+                            fill: false,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
                 // Create chart for unique geolocations
                 const geoChartCtx = document.getElementById('geoChart').getContext('2d');
                 const geoChart = new Chart(geoChartCtx, {
@@ -199,10 +251,6 @@
                             legend: {
                                 position: 'top',
                             },
-                            title: {
-                                display: true,
-                                text: 'Unique Geolocations'
-                            }
                         }
                     }
                 });
@@ -210,49 +258,15 @@
                 // Create chart for unique hostnames
                 const dnsChartCtx = document.getElementById('dnsChart').getContext('2d');
                 const dnsChart = new Chart(dnsChartCtx, {
-                    type: 'pie',
+                    type: 'bar',
                     data: {
                         labels: Object.keys(dnsCounts),
                         datasets: [{
                             label: 'Unique Hostnames',
                             data: Object.values(dnsCounts),
-                            backgroundColor: ['rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)'],
-                            borderColor: ['rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
                             borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            },
-                            title: {
-                                display: true,
-                                text: 'Unique Hostnames'
-                            }
-                        }
-                    }
-                });
-            })
-            .catch(error => console.error('Error fetching IP data:', error));
-
-        // Fetch summary data for hourly statistics
-        fetch('/api/summary')
-            .then(response => response.json())
-            .then(summaryData => {
-                // Create chart for summary by hour
-                const summaryHourChartCtx = document.getElementById('summaryHourChart').getContext('2d');
-                const summaryHourChart = new Chart(summaryHourChartCtx, {
-                    type: 'line',
-                    data: {
-                        labels: Object.keys(summaryData.hourly),
-                        datasets: [{
-                            label: 'Scans Per Hour',
-                            data: Object.values(summaryData.hourly),
-                            fill: false,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            tension: 0.1
                         }]
                     },
                     options: {
@@ -263,8 +277,31 @@
                         }
                     }
                 });
-            })
-            .catch(error => console.error('Error fetching summary data:', error));
+
+                // Create chart for hostname comparison
+                const hostnameComparisonChartCtx = document.getElementById('hostnameComparisonChart').getContext('2d');
+                const hostnameComparisonChart = new Chart(hostnameComparisonChartCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Known', 'Unknown'],
+                        datasets: [{
+                            label: 'Hostname Comparison',
+                            data: [hostnameCounts.known, hostnameCounts.unknown],
+                            backgroundColor: ['rgba(75, 192, 192, 0.5)', 'rgba(255, 99, 132, 0.5)'],
+                            borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                        }
+                    }
+                });
+            });
     </script>
 </body>
 </html>
