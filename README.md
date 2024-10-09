@@ -14,6 +14,9 @@ The default credentials are:
  - Add data graphs for, city, ISP, certificate count, 
  - Auto start up scanner when webapp starts
  - Proxy Support
+ - Add better graph arangement
+ - Add OS/Device/Service scanning
+ - Add search bar
 
 
 # Credits
