@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Scanner Results</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">IP Scanner Results</h1>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Status Codes
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Open Ports
+                    </div>
+                    <div class="card-body">
+                        <canvas id="portChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Ping Times (ms)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="pingChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Summary by Hour
+                    </div>
+                    <div class="card-body">
+                        <canvas id="summaryHourChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Unique Geolocations
+                    </div>
+                    <div class="card-body">
+                        <canvas id="geoChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Unique Hostnames
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dnsChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch IP data from the Flask API
+        fetch('/api/ip_data')
+            .then(response => response.json())
+            .then(data => {
+                const statusCounts = {};
+                const portCounts = {};
+                const pingTimes = [];
+                const geoCounts = {};
+                const dnsCounts = {};
+
+                // Process IP data for status and port statistics
+                for (const ip in data) {
+                    const status = data[ip].code;
+                    statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+                    if (data[ip].open_ports) {
+                        data[ip].open_ports.forEach(port => {
+                            portCounts[port] = (portCounts[port] || 0) + 1;
+                        });
+                    }
+
+                    const pingTime = data[ip].ping_time;
+                    if (pingTime !== null) {
+                        pingTimes.push(pingTime);
+                    }
+
+                    // Process geolocation data
+                    const geo = data[ip].geolocation.country || 'Unknown';
+                    geoCounts[geo] = (geoCounts[geo] || 0) + 1;
+
+                    // Process DNS data
+                    const hostname = data[ip].dns_info.hostname || 'Unknown';
+                    dnsCounts[hostname] = (dnsCounts[hostname] || 0) + 1;
+                }
+
+                // Create chart for status codes
+                const statusChartCtx = document.getElementById('statusChart').getContext('2d');
+                const statusChart = new Chart(statusChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            label: 'Status Codes',
+                            data: Object.values(statusCounts),
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Create chart for open ports
+                const portChartCtx = document.getElementById('portChart').getContext('2d');
+                const portChart = new Chart(portChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(portCounts),
+                        datasets: [{
+                            label: 'Open Ports',
+                            data: Object.values(portCounts),
+                            backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Create chart for ping times
+                const pingChartCtx = document.getElementById('pingChart').getContext('2d');
+                const pingChart = new Chart(pingChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: pingTimes.map((_, index) => `IP ${index + 1}`),
+                        datasets: [{
+                            label: 'Ping Times (ms)',
+                            data: pingTimes,
+                            fill: false,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Create chart for unique geolocations
+                const geoChartCtx = document.getElementById('geoChart').getContext('2d');
+                const geoChart = new Chart(geoChartCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(geoCounts),
+                        datasets: [{
+                            label: 'Unique Geolocations',
+                            data: Object.values(geoCounts),
+                            backgroundColor: ['rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)'],
+                            borderColor: ['rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Unique Geolocations'
+                            }
+                        }
+                    }
+                });
+
+                // Create chart for unique hostnames
+                const dnsChartCtx = document.getElementById('dnsChart').getContext('2d');
+                const dnsChart = new Chart(dnsChartCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(dnsCounts),
+                        datasets: [{
+                            label: 'Unique Hostnames',
+                            data: Object.values(dnsCounts),
+                            backgroundColor: ['rgba(255, 206, 86, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)'],
+                            borderColor: ['rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Unique Hostnames'
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching IP data:', error));
+
+        // Fetch summary data for hourly statistics
+        fetch('/api/summary')
+            .then(response => response.json())
+            .then(summaryData => {
+                // Create chart for summary by hour
+                const summaryHourChartCtx = document.getElementById('summaryHourChart').getContext('2d');
+                const summaryHourChart = new Chart(summaryHourChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(summaryData.hourly),
+                        datasets: [{
+                            label: 'Scans Per Hour',
+                            data: Object.values(summaryData.hourly),
+                            fill: false,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching summary data:', error));
+    </script>
+</body>
+</html>
