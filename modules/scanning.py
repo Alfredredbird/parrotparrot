@@ -4,6 +4,7 @@ import requests
 
 
 def get_geolocation(ip):
+    """Gets geolocation info of the given IP address."""
     try:
         response = requests.get(f'https://geolocation-db.com/json/{ip}&position=true').json()
         return {
@@ -17,6 +18,7 @@ def get_geolocation(ip):
         return {}
 
 def scan_ip(ip):
+    """Scans a given IP address, and returns the results in JSON format."""
     nm = nmap.PortScanner()
     try:
         # Start the scan with OS detection (-O)

@@ -96,6 +96,7 @@ def run_ip_scan():
 
     ip_data[ip] = scan_result
     with open('ips.json', 'w') as file:
+
         json.dump(ip_data, file, indent=4)
 
     # Redirect to display results on a new page
