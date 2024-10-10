@@ -5,6 +5,7 @@ import socket
 import threading
 import time
 import ssl
+import argparse
 from datetime import datetime
 
 COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080]
@@ -86,10 +87,10 @@ def check_ip_with_request(ip):
     except requests.RequestException:
         return {"code": 400, "ping_time": ping_time}
 
-def scan_ip(ip, ip_data, file_path):
-    """Scan an individual IP for HTTP status, open ports, geolocation, and DNS info, and store the results."""
+def scan_ip(ip, ip_data):
+    """Scan an individual IP for HTTP status, open ports, geolocation, and DNS info, and update the results."""
     print(f"Scanning IP: {ip}")
-    
+
     ip_info = check_ip_with_request(ip)
     open_ports = perform_port_scan(ip, COMMON_PORTS)
     
@@ -105,37 +106,39 @@ def scan_ip(ip, ip_data, file_path):
     timestamp = datetime.now().isoformat()
     ip_info["timestamp"] = timestamp
 
-    with lock:
-        ip_data[ip] = ip_info
-        # Update the JSON file with the current state of ip_data
-        with open(file_path, 'w') as file:
-            json.dump(ip_data, file, indent=4)
+    return ip_info  # Return the IP information to be updated in the main data structure
 
-def save_ip_to_json(file_path, num_ips):
-    """Generate and save unique IP addresses and their request status, redirection details, and port scan results to a JSON file."""
+def save_ip_to_json(file_path, specific_ip):
+    """Load existing IP data, scan the specific IP, and update the JSON file."""
     try:
         with open(file_path, 'r') as file:
             ip_data = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         ip_data = {}
 
-    threads = []
-    
-    for _ in range(num_ips):
-        new_ip = generate_random_ip()
-        if new_ip not in ip_data:
-            thread = threading.Thread(target=scan_ip, args=(new_ip, ip_data, file_path))
-            threads.append(thread)
-            thread.start()
+    # Scan the specific IP
+    ip_info = scan_ip(specific_ip, ip_data)
 
-    for thread in threads:
-        thread.join()
+    with lock:
+        # Update or add the IP information in the data
+        ip_data[specific_ip] = ip_info
 
-    print(f"Added {num_ips} IP addresses with HTTP request status, geolocation, DNS info, ISP, SSL, and port scan results to {file_path}.")
+        # Update the JSON file with the current state of ip_data
+        with open(file_path, 'w') as file:
+            json.dump(ip_data, file, indent=4)
 
-# runs in batches of 100
-while True: 
-    save_ip_to_json('ips.json', 200)
-    print("Taking a break...")
-    time.sleep(50)
-    
+    print(f"Updated data for IP address: {specific_ip}.")
+
+def main():
+    parser = argparse.ArgumentParser(description="IP Scanner")
+    parser.add_argument('-ip', type=str, help="Specific IP address to scan.")
+    args = parser.parse_args()
+
+    if args.ip:
+        save_ip_to_json('ips.json', args.ip)  # Pass the specific IP to scan and save
+    else:
+        print("No IP address provided to scan.")
+    print("Done!")
+
+if __name__ == "__main__":
+    main()

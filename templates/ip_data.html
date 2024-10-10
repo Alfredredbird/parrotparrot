@@ -5,11 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IP Data</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #121212; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+        table {
+            background-color: #1e1e1e; /* Darker table background */
+            color: #ffffff; /* Light text */
+        }
+        th {
+            background-color: #333; /* Darker header */
+            color: #ffffff; /* Light text */
+        }
+        td {
+            color: #e9ecef; /* Lighter text for table data */
+        }
+        .btn-danger {
+            background-color: #dc3545; /* Red */
+            border: none;
+        }
+        .btn-danger:hover {
+            background-color: #c82333; /* Darker red on hover */
+        }
+        .btn-primary {
+            background-color: #007bff; /* Blue */
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0069d9; /* Darker blue on hover */
+        }
+        .btn-warning {
+            background-color: #ffc107; /* Yellow */
+            border: none;
+            color: #212529; /* Darker text */
+        }
+        .btn-warning:hover {
+            background-color: #e0a800; /* Darker yellow on hover */
+        }
+        .input-group .form-control {
+            background-color: #1e1e1e; /* Dark input */
+            color: #ffffff; /* Light text */
+            border: 1px solid #333; /* Dark border */
+        }
+        .input-group .form-control::placeholder {
+            color: #adb5bd; /* Light gray placeholder */
+        }
+        .input-group .form-control:focus {
+            background-color: #333; /* Darker input on focus */
+            color: #ffffff; /* Light text */
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1>IP Address Data</h1>
         <a href="{{ url_for('logout') }}" class="btn btn-danger mb-3">Logout</a>
+        <a href="{{ url_for('index') }}" class="btn btn-danger mb-3">Home</a>
+        <a href="{{ url_for('display_ip_data') }}" class="btn btn-danger mb-3">Refresh</a>
         <form method="get" action="{{ url_for('display_ip_data') }}" class="mb-3">
             <div class="input-group">
                 <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request.args.get('search', '') }}">
@@ -31,6 +84,7 @@
                         <th>Country</th>
                         <th>ISP Info</th>
                         <th>Timestamp</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,6 +122,12 @@
                             </td>
                             <td>{{ isp_info }}</td>
                             <td>{{ info.timestamp }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('rescan') }}">
+                                    <input type="hidden" name="ip" value="{{ ip }}">
+                                    <button type="submit" class="btn btn-warning">Rescan</button>
+                                </form>
+                            </td>
                         </tr>
                         {% endif %}
                     {% endfor %}

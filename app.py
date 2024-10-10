@@ -1,3 +1,4 @@
+import time
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 import json
 from collections import Counter
@@ -41,7 +42,7 @@ def login():
 def index():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    return render_template('index.html')
+    return render_template('welcome.html')
 
 # Route to get IP data in JSON format
 @app.route('/api/ip_data')
@@ -103,7 +104,22 @@ def display_ip_data():
         return render_template('ip_data.html', ip_data=data)
     except (FileNotFoundError, json.JSONDecodeError):
         return render_template('ip_data.html', ip_data={})
+    
+@app.route('/analytics')
+def analytics():
+    if 'logged_in' not in session:
+        return redirect(url_for('login')) 
+    return render_template('index.html', ip_data={})
 
+
+# Route to rescan an IP address
+@app.route('/rescan', methods=['POST'])
+def rescan():
+    ip = request.form.get('ip')
+    if ip:
+        # Run the scan.py script with the specified IP
+        subprocess.Popen(['python.exe', 'scan.py', '-ip', ip])
+    return redirect(url_for('display_ip_data'))
 
 # Route to log out
 @app.route('/logout')
