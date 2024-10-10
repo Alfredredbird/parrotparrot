@@ -10,9 +10,13 @@
             background-color: #121212; /* Dark background */
             color: #ffffff; /* Light text */
         }
+        .container {
+            max-width: 90%; /* Extend the width of the container */
+        }
         table {
             background-color: #1e1e1e; /* Darker table background */
             color: #ffffff; /* Light text */
+            width: 100%; /* Make table full width */
         }
         th {
             background-color: #333; /* Darker header */
@@ -55,6 +59,11 @@
             background-color: #333; /* Darker input on focus */
             color: #ffffff; /* Light text */
         }
+        /* Ensure images fit well */
+        img.device-icon {
+            width: 30px;
+            height: 30px;
+        }
     </style>
 </head>
 <body>
@@ -83,6 +92,7 @@
                         <th>Region</th>
                         <th>Country</th>
                         <th>ISP Info</th>
+                        <th>Device Type</th>
                         <th>Timestamp</th>
                         <th>Actions</th>
                     </tr>
@@ -94,12 +104,14 @@
                         {% set region = info.geolocation.region if info.geolocation and 'region' in info.geolocation else '' %}
                         {% set country = info.geolocation.country if info.geolocation and 'country' in info.geolocation else '' %}
                         {% set isp_info = info.isp_info if 'isp_info' in info else '' %}
+                        {% set device_type = info.device_type if 'device_type' in info else 'Unknown' %}
                         
                         {% if search_query in ip or 
                               search_query in city.lower() or 
                               search_query in region.lower() or 
                               search_query in country.lower() or 
-                              search_query in isp_info.lower() %}
+                              search_query in isp_info.lower() or 
+                              search_query in device_type.lower() %}
                         <tr>
                             <td>{{ ip }}</td>
                             <td>{{ info.code }}</td>
@@ -121,6 +133,21 @@
                                 {% endif %}
                             </td>
                             <td>{{ isp_info }}</td>
+                            <td>
+                                {% if device_type.lower().startswith('ubuntu') %}
+                                    <img src="{{ url_for('static', filename='device_icons/ubuntu.png') }}" class="device-icon" alt="Ubuntu">
+                                {% elif device_type.lower().startswith('windows') %}
+                                    <img src="{{ url_for('static', filename='device_icons/windows.png') }}" class="device-icon" alt="Windows">
+                                {% elif device_type.lower().startswith('mac') %}
+                                    <img src="{{ url_for('static', filename='device_icons/mac.png') }}" class="device-icon" alt="Windows">
+                                {% elif device_type.lower().startswith('ios') %}
+                                    <img src="{{ url_for('static', filename='device_icons/ios.png') }}" class="device-icon" alt="Windows">
+                                {% elif device_type.lower().startswith('android') %}
+                                    <img src="{{ url_for('static', filename='device_icons/android.png') }}" class="device-icon" alt="Windows">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='device_icons/unknown.png') }}" class="device-icon" alt="Unknown">
+                                {% endif %}
+                            </td>
                             <td>{{ info.timestamp }}</td>
                             <td>
                                 <form method="post" action="{{ url_for('rescan') }}">

@@ -149,6 +149,7 @@ def display_ip_data():
         return render_template('ip_data.html', ip_data=data)
     except (FileNotFoundError, json.JSONDecodeError):
         return render_template('ip_data.html', ip_data={})
+
     
 @app.route('/analytics')
 def analytics():
