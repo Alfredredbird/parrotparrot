@@ -1,3 +1,4 @@
+import os
 import time
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 import json
@@ -15,7 +16,7 @@ app.secret_key = 'PoPoParrot'
 # Change to python3 if not on windows
 
 def run_scanner():
-    subprocess.run(['python.exe', 'main.py'])
+    subprocess.run(['python.exe' if os.name == "nt" else "python3", 'main.py'])
 
 
 script_thread = threading.Thread(target=run_scanner)
