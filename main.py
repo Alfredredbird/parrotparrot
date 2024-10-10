@@ -6,8 +6,9 @@ import threading
 import time
 import ssl
 from datetime import datetime
+import nmap
 
-COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080]
+COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080,7,902,88,23,53,381,69,587,1337,20,1025,102,110,139,135,137,143,465,593,636,691,989,993,995,158,8096]
 lock = threading.Lock()
 
 def generate_random_ip():
@@ -86,6 +87,58 @@ def check_ip_with_request(ip):
     except requests.RequestException:
         return {"code": 400, "ping_time": ping_time}
 
+def scan_device_type(ip, ip_data, file_path):
+    """Use Nmap to scan an IP for detailed device information and update the JSON file with a 2-second timeout."""
+    try:
+        # Initialize the Nmap scanner
+        nm = nmap.PortScanner()
+        
+        # Scan for detailed information with a timeout of 2 seconds
+        nm.scan(ip, arguments='-O -sS', timeout=10)
+
+        # Extract information
+        device_info = {}
+        
+        # Get device type and OS information
+        if 'osclass' in nm[ip]:
+            os_info = nm[ip]['osclass']
+            device_info["device_type"] = os_info[0]['type'] if os_info else "Unknown"
+            device_info["os_family"] = os_info[0]['osfamily'] if os_info else "Unknown"
+        else:
+            device_info["device_type"] = "Unknown"
+            device_info["os_family"] = "Unknown"
+
+        # Get hostnames
+        device_info["hostnames"] = nm[ip].hostname() or "Unknown"
+        
+        # Get MAC address and vendor
+        if 'addresses' in nm[ip] and 'mac' in nm[ip]['addresses']:
+            device_info["mac_address"] = nm[ip]['addresses']['mac']
+            device_info["vendor"] = nm[ip]['vendor'].get(device_info["mac_address"], "Unknown")
+        else:
+            device_info["mac_address"] = "Unknown"
+            device_info["vendor"] = "Unknown"
+
+        # Get open ports and their services
+        if 'tcp' in nm[ip]:
+            device_info["open_ports"] = {port: nm[ip]['tcp'][port]['name'] for port in nm[ip]['tcp']}
+
+        if 'udp' in nm[ip]:
+            device_info.setdefault("open_ports", {}).update({port: nm[ip]['udp'][port]['name'] for port in nm[ip]['udp']})
+
+        # Lock the thread and update the JSON data
+        with lock:
+            ip_data[ip].update(device_info)
+            with open(file_path, 'w') as file:
+                json.dump(ip_data, file, indent=4)
+        
+        print(f"Device details for {ip}: {device_info}")
+    
+    except Exception as e:
+        print(f"Failed to scan device details for {ip}: {e}")
+        ip_data[ip]["device_type"] = "Unknown"
+
+
 def scan_ip(ip, ip_data, file_path):
     """Scan an individual IP for HTTP status, open ports, geolocation, and DNS info, and store the results."""
     print(f"Scanning IP: {ip}")
@@ -111,6 +164,8 @@ def scan_ip(ip, ip_data, file_path):
         with open(file_path, 'w') as file:
             json.dump(ip_data, file, indent=4)
 
+    scan_device_type(ip, ip_data, file_path)
+    
 def save_ip_to_json(file_path, num_ips):
     """Generate and save unique IP addresses and their request status, redirection details, and port scan results to a JSON file."""
     try:

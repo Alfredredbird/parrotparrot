@@ -6,6 +6,8 @@ from datetime import datetime
 import threading
 import subprocess
 
+from modules.scanning import *
+
 app = Flask(__name__)
 app.secret_key = 'PoPoParrot'  
 
@@ -74,6 +76,40 @@ def ip_data():
         return jsonify(data)
     except (FileNotFoundError, json.JSONDecodeError):
         return jsonify({})
+
+# Route to handle form submission and initiate IP scan
+@app.route('/run_ip_scan', methods=['POST'])
+def run_ip_scan():
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    ip = request.form['ip']
+    scan_result = scan_ip(ip)
+    
+    # Save the scan result to JSON file (append without overwriting)
+    try:
+        with open('ips.json', 'r') as file:
+            ip_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        ip_data = {}
+
+    ip_data[ip] = scan_result
+    with open('ips.json', 'w') as file:
+        json.dump(ip_data, file, indent=4)
+
+    # Redirect to display results on a new page
+    return redirect(url_for('display_scan_result', ip=ip))
+
+# Route to display scan result
+@app.route('/scan_result/<ip>')
+def display_scan_result(ip):
+    try:
+        with open('ips.json', 'r') as file:
+            ip_data = json.load(file)
+            scan_result = ip_data.get(ip, {})
+        return render_template('scan_result.html', scan_result=scan_result)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return render_template('scan_result.html', scan_result={})
 
 # Route to get summary data based on day and hour
 @app.route('/api/summary')

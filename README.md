@@ -11,8 +11,8 @@ The default credentials are:
 
 # To DO
 
- - Add data graphs for, city, ISP, certificate count, 
- - Auto start up scanner when webapp starts
+ - ✅ Add data graphs for, city, ISP, certificate count, 
+ - ✅ Auto start up scanner when webapp starts
  - Proxy Support
  - ✅ Add better graph arangement
  - Add OS/Device/Service scanning

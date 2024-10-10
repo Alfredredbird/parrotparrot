@@ -8,7 +8,7 @@ import ssl
 import argparse
 from datetime import datetime
 
-COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080]
+COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080,7,902,88,23,53,381,69,587,1337,20,1025,102,110,139,135,137,143,465,593,636,691,989,993,995,158,8096]
 lock = threading.Lock()
 
 def generate_random_ip():

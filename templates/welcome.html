@@ -17,6 +17,10 @@
             <a href="{{ url_for('display_ip_data') }}" class="button">View IP Data</a>
             <a href="{{ url_for('analytics') }}" class="button">Analytics</a>
         </div>
+        <form action="{{ url_for('run_ip_scan') }}" method="POST">
+            <input type="text" name="ip" placeholder="Enter IP address" required>
+            <button type="submit">Run Scan</button>
+        </form>
         <div class="footer">
             <p>https://github.com/Alfredredbird/parrotparrot</p>
         </div>

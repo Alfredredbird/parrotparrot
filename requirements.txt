@@ -4,3 +4,4 @@ socket
 json
 random
 threading
+python-nmap
