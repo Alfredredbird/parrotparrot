@@ -1,7 +1,3 @@
 flask
 requests
-socket
-json
-random
-threading
 python-nmap
