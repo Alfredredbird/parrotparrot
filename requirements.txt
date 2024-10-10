@@ -1,4 +1,4 @@
-faker
+faker>=30.3.0
 flask
 requests
 python-nmap
