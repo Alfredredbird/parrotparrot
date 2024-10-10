@@ -7,6 +7,7 @@ import requests
 from faker import Faker
 
 def generate_random_ip(_type: Literal["ipv4", "ipv6"] = "ipv4"):
+    """Generates a random IPV4 or IPV^ address"""
     fake = Faker()
 
     # Generate a random IP address based on the given _type
