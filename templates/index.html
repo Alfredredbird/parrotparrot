@@ -94,13 +94,14 @@
             <div class="col-md-6 mt-4">
                 <div class="card">
                     <div class="card-header">
-                        Unique Hostnames
+                        SSL Certificates
                     </div>
                     <div class="card-body">
-                        <canvas id="dnsChart" height="200"></canvas>
+                        <canvas id="sslChart" height="200"></canvas>
                     </div>
                 </div>
             </div>
+            
             <!-- New Card for Hostname Comparison -->
             <div class="col-md-6 mt-4">
                 <div class="card">
@@ -112,6 +113,37 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Cities
+                    </div>
+                    <div class="card-body">
+                        <canvas id="cityChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        ISPs
+                    </div>
+                    <div class="card-body">
+                        <canvas id="ispChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header">
+                        Unique Hostnames
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dnsChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -127,20 +159,34 @@
                 const dnsCounts = {};
                 const hostnameCounts = { known: 0, unknown: 0 };
                 const hourCounts = {};
-                const isp = {};
-                const sslcetcount = {};
-                const city = {};
+                const cityCounts = {};   // New city count variable
+                const ispCounts = {};    // New ISP count variable
+                const sslCounts = { valid: 0, invalid: 0 };  // New SSL count variable
                 // Process IP data for status and port statistics
                 for (const ip in data) {
                     const status = data[ip].code;
                     statusCounts[status] = (statusCounts[status] || 0) + 1;
-
+                    
                     if (data[ip].open_ports) {
                         data[ip].open_ports.forEach(port => {
                             portCounts[port] = (portCounts[port] || 0) + 1;
                         });
                     }
+                    // Process city data
+                    const city = data[ip].geolocation.city || 'Unknown';
+                    cityCounts[city] = (cityCounts[city] || 0) + 1;
 
+                    // Process ISP data
+                    const isp = data[ip].geolocation.org || 'Unknown ISP';
+                    ispCounts[isp] = (ispCounts[isp] || 0) + 1;
+
+                    // Process SSL certificate validity
+                    const sslCertificate = data[ip].ssl_certificate;
+                    if (sslCertificate && sslCertificate.valid) {
+                        sslCounts.valid++;
+                    } else {
+                        sslCounts.invalid++;
+                    }
                     const pingTime = data[ip].ping_time;
                     if (pingTime !== null) {
                         pingTimes.push(pingTime);
@@ -170,6 +216,70 @@
                 const averagePing = pingTimes.length > 0 ? (pingTimes.reduce((a, b) => a + b, 0) / pingTimes.length).toFixed(2) : 0;
                 document.getElementById('averagePing').innerText = `Average Ping: ${averagePing} ms`;
 
+                const cityChartCtx = document.getElementById('cityChart').getContext('2d');
+                const cityChart = new Chart(cityChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(cityCounts),
+                        datasets: [{
+                            label: 'Cities',
+                            data: Object.values(cityCounts),
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            
+                const ispChartCtx = document.getElementById('ispChart').getContext('2d');
+                const ispChart = new Chart(ispChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(ispCounts),
+                        datasets: [{
+                            label: 'ISPs',
+                            data: Object.values(ispCounts),
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            
+                const sslChartCtx = document.getElementById('sslChart').getContext('2d');
+                const sslChart = new Chart(sslChartCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Valid', 'Invalid'],
+                        datasets: [{
+                            data: [sslCounts.valid, sslCounts.invalid],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(255, 99, 132, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 99, 132, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    }
+                });
+  
                 // Create chart for status codes
                 const statusChartCtx = document.getElementById('statusChart').getContext('2d');
                 const statusChart = new Chart(statusChartCtx, {
