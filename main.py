@@ -135,7 +135,7 @@ def save_ip_to_json(file_path, num_ips):
 
 # runs in batches of 100
 while True: 
-    save_ip_to_json('ips.json', 200)
+    save_ip_to_json('ips.json', 100)
     print("Taking a break...")
     time.sleep(50)
     

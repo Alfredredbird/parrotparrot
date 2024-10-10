@@ -10,6 +10,15 @@ app = Flask(__name__)
 app.secret_key = 'PoPoParrot'  
 
 
+# Change to python3 if not on windows
+
+def run_scanner():
+    subprocess.run(['python.exe', 'main.py'])
+
+
+script_thread = threading.Thread(target=run_scanner)
+
+script_thread.start()
 
 # Load authentication credentials
 def load_credentials():
