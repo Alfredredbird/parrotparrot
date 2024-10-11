@@ -9,6 +9,10 @@ The default credentials are:
 `parrot`
 `parrot`
 
+# Data View:
+after visiting `127.0.0.1:5000/display_ip_data` you should be able to see your captured data
+
+
 # To DO
 
  - ✅ Add data graphs for, city, ISP, certificate count, 
