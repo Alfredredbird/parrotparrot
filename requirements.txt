@@ -1,9 +1,6 @@
+faker>=30.3.0
 flask
 requests
-socket
-json
-random
-threading
 python-nmap
 selenium
 beautifulsoup4 

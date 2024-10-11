@@ -1,11 +1,20 @@
 import json
 import threading
+from typing import Literal
+
 import nmap
 import requests
+from faker import Faker
 
-def generate_random_ip():
-    # Implement your IP generation logic here
-    pass
+def generate_random_ip(_type: Literal["ipv4", "ipv6"] = "ipv4"):
+    """Generates a random IPV4 or IPV6 address"""
+    fake = Faker()
+
+    # Generate a random IP address based on the given _type
+    random_ip = fake.ipv4() if _type == "ipv4" else fake.ipv6()
+
+    return random_ip
+
 
 def get_geolocation(ip):
     try:
