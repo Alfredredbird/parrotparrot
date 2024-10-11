@@ -5,3 +5,4 @@ python-nmap
 selenium
 beautifulsoup4 
 webdriver-manager
+netifaces

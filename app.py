@@ -183,7 +183,15 @@ def ip_scan():
         return jsonify({"message": "Scan started"}), 200
     except Exception as e:
         return jsonify({"message": "Failed to start scan", "error": str(e)}), 500
+    
 
+@app.route('/network-scan', methods=['POST'])
+def network_scan():
+    try:
+        subprocess.run(["python.exe", "scripts/networkscan.py"], check=True)
+        return jsonify({"message": "Scan started"}), 200
+    except Exception as e:
+        return jsonify({"message": "Failed to start scan", "error": str(e)}), 500
 
 # Route to log out
 @app.route('/logout')

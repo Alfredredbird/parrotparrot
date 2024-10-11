@@ -140,6 +140,7 @@
                 <p><strong>Hostname:</strong> {{ scan_result.get('dns_info', {}).get('hostname', 'N/A') }}</p>
                 <p><strong>Aliases:</strong> {{ scan_result.get('dns_info', {}).get('aliases', 'N/A') | join(', ') }}</p>
                 <p><strong>IP Addresses:</strong> {{ scan_result.get('dns_info', {}).get('ip', 'N/A') | join(', ') }}</p>
+                <p><strong>Open Ports:</strong> {{ scan_result.get('open_ports', {}) }}</p>
             </div>
         </div>
 
