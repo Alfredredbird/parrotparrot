@@ -192,7 +192,7 @@ i = 1
 # runs in batches of 100
 while True: 
     if i != 1:
-     save_ip_to_json('ips.json', 100)
+     save_ip_to_json('saves/ips.json', 100)
      print("Taking a break...")
      time.sleep(50)
     

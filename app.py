@@ -63,7 +63,7 @@ def ip_data():
         return jsonify({"error": "Unauthorized access"}), 401
 
     try:
-        with open('ips.json', 'r') as file:
+        with open('saves/ips.json', 'r') as file:
             data = json.load(file)
 
         # Add geolocation and DNS info to the response
@@ -89,13 +89,13 @@ def run_ip_scan():
     
     # Save the scan result to JSON file (append without overwriting)
     try:
-        with open('ips.json', 'r') as file:
+        with open('saves/ips.json', 'r') as file:
             ip_data = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
         ip_data = {}
 
     ip_data[ip] = scan_result
-    with open('ips.json', 'w') as file:
+    with open('saves/ips.json', 'w') as file:
 
         json.dump(ip_data, file, indent=4)
 
@@ -106,7 +106,7 @@ def run_ip_scan():
 @app.route('/scan_result/<ip>')
 def display_scan_result(ip):
     try:
-        with open('ips.json', 'r') as file:
+        with open('saves/ips.json', 'r') as file:
             ip_data = json.load(file)
             scan_result = ip_data.get(ip, {})
         return render_template('scan_result.html', scan_result=scan_result)
@@ -120,7 +120,7 @@ def summary():
         return jsonify({"error": "Unauthorized access"}), 401
 
     try:
-        with open('ips.json', 'r') as file:
+        with open('saves/ips.json', 'r') as file:
             data = json.load(file)
         
         # Create a list to hold timestamps
@@ -145,7 +145,7 @@ def display_ip_data():
         return redirect(url_for('login'))
     
     try:
-        with open('ips.json', 'r') as file:
+        with open('saves/ips.json', 'r') as file:
             data = json.load(file)
         
         return render_template('ip_data.html', ip_data=data)

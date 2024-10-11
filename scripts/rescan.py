@@ -106,7 +106,7 @@ def scan_ip(ip, ip_data):
     
     timestamp = datetime.now().isoformat()
     ip_info["timestamp"] = timestamp
-    scan_device_type(ip, ip_data, "ips.json")
+    scan_device_type(ip, ip_data, "saves/ips.json")
     return ip_info  # Return the IP information to be updated in the main data structure
 
 def scan_device_type(ip, ip_data, file_path):
@@ -187,7 +187,7 @@ def main():
     args = parser.parse_args()
 
     if args.ip:
-        save_ip_to_json('ips.json', args.ip)  # Pass the specific IP to scan and save
+        save_ip_to_json('saves/ips.json', args.ip)  # Pass the specific IP to scan and save
     else:
         print("No IP address provided to scan.")
     print("Done!")
