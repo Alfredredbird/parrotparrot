@@ -3,14 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Result</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Scan Result for {{ scan_result.get('geolocation', {}).get('ip', 'Unknown IP') }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .card {
+            background-color: #1f1f1f;
+            color: #ffffff;
+            border: none;
+        }
+        .card-header {
+            background-color: #333;
+            font-weight: bold;
+        }
+        .card-body {
+            background-color: #1f1f1f;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #c82333;
+        }
+        h1 {
+            color: #ffffff;
+        }
+        .flag-icon {
+            width: 25px;  /* Adjusted size */
+            height: 15px; /* Adjusted size */
+        }
+        .device-icon {
+            width: 50px;
+            height: 50px;
+        }
+        .view-box {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            border: 2px solid #444;
+        }
+        .view-box h5 {
+            color: #fff;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Search Result</h1>
-        <pre>{{ output }}</pre>
-        <a href="{{ url_for('index') }}" class="button">Back to Home</a>
+    <div class="container mt-5">
+        <h1 class="text-center">Scan Result for {{ scan_result.get('geolocation', {}).get('ip', 'Unknown IP') }}</h1>
+
+        <!-- IP Info Card -->
+        <div class="card mb-3">
+            <div class="card-header">IP Information</div>
+            <div class="card-body">
+                <p><strong>IP:</strong> {{ scan_result.get('geolocation', {}).get('ip', 'N/A') }}</p>
+                <p><strong>Hostname:</strong> {{ scan_result.get('geolocation', {}).get('hostname', 'N/A') }}</p>
+                <p><strong>Postal Code:</strong> {{ scan_result.get('geolocation', {}).get('postal', 'N/A') }}</p>
+                <p><strong>Timezone:</strong> {{ scan_result.get('geolocation', {}).get('timezone', 'N/A') }}</p>
+            </div>
+        </div>
+
+        <!-- Geolocation Card -->
+        <div class="card mb-3">
+            <div class="card-header">Geolocation</div>
+            <div class="card-body">
+                <p><strong>City:</strong> {{ scan_result.get('geolocation', {}).get('city', 'N/A') }}</p>
+                <p><strong>Region:</strong> {{ scan_result.get('geolocation', {}).get('region', 'N/A') }}</p>
+                <p><strong>Country:</strong> 
+                    {% set country = scan_result.get('geolocation', {}).get('country', 'N/A') %}
+                    {% if country != 'N/A' %}
+                        {% set flag_path = 'flags/' + country.upper() + '-128.png' %}
+                        <img src="{{ url_for('static', filename=flag_path) }}" alt="{{ country }} flag" class="flag-icon" 
+                             onerror="this.onerror=null; this.src='{{ url_for('static', filename='flags/unknown.png') }}';">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='flags/unknown.png') }}" alt="Unknown flag" class="flag-icon">
+                    {% endif %}
+                </p>
+                <p><strong>Location:</strong> {{ scan_result.get('geolocation', {}).get('loc', 'N/A') }}</p>
+                <p><strong>Organization:</strong> {{ scan_result.get('geolocation', {}).get('org', 'N/A') }}</p>
+            </div>
+        </div>
+
+        <!-- DNS Info Card -->
+        <div class="card mb-3">
+            <div class="card-header">DNS Info</div>
+            <div class="card-body">
+                <p><strong>Hostname:</strong> {{ scan_result.get('dns_info', {}).get('hostname', 'N/A') }}</p>
+                <p><strong>Aliases:</strong> {{ scan_result.get('dns_info', {}).get('aliases', 'N/A') | join(', ') }}</p>
+                <p><strong>IP Addresses:</strong> {{ scan_result.get('dns_info', {}).get('ip', 'N/A') | join(', ') }}</p>
+            </div>
+        </div>
+
+        <!-- ISP Info Card -->
+        <div class="card mb-3">
+            <div class="card-header">ISP Information</div>
+            <div class="card-body">
+                <p><strong>ISP Info:</strong> {{ scan_result.get('isp_info', 'N/A') }}</p>
+            </div>
+        </div>
+
+        <!-- Response Headers Card -->
+        <div class="card mb-3">
+            <div class="card-header">Response Headers</div>
+            <div class="card-body">
+                <p><strong>Date:</strong> {{ scan_result.get('response_headers', {}).get('Date', 'N/A') }}</p>
+                <p><strong>Server:</strong> {{ scan_result.get('response_headers', {}).get('Server', 'N/A') }}</p>
+                <p><strong>Content-Type:</strong> {{ scan_result.get('response_headers', {}).get('Content-Type', 'N/A') }}</p>
+                <p><strong>Cache-Control:</strong> {{ scan_result.get('response_headers', {}).get('Cache-Control', 'N/A') }}</p>
+            </div>
+        </div>
+
+        <!-- SSL Certificate Card -->
+        <div class="card mb-3">
+            <div class="card-header">SSL Certificate</div>
+            <div class="card-body">
+                <p><strong>SSL Certificate:</strong> {{ scan_result.get('ssl_certificate', 'N/A') }}</p>
+            </div>
+        </div>
+
+        <!-- Additional Information Card -->
+        <div class="card mb-3">
+            <div class="card-header">Additional Information</div>
+            <div class="card-body">
+                <p><strong>Timestamp:</strong> {{ scan_result.get('timestamp', 'N/A') }}</p>
+                <p><strong>Device Type:</strong> 
+                    {% if scan_result.get('device_type', 'Unknown') != 'Unknown' %}
+                        <img src="{{ url_for('static', filename='device_icons/' + scan_result.get('device_type', 'unknown') + '.png') }}" class="device-icon" alt="Device Icon">
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </p>
+
+                {% if scan_result.get('device_type') == 'ip_camera' %}
+                    <!-- IP Camera View Box -->
+                    <div class="view-box">
+                        <h5>IP Camera: {{ scan_result.get('geolocation', {}).get('ip', 'N/A') }}</h5>
+                        <button class="btn btn-primary" onclick="loadCameraPage()">View</button>
+                        <div id="camera-view-container" style="display:none;">
+                            <iframe id="camera-view" src="" frameborder="0"></iframe>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{{ url_for('display_ip_data') }}" class="btn btn-danger d-block mx-auto">Back</a>
     </div>
+
+    <script>
+        function loadCameraPage() {
+            var ipAddress = "{{ scan_result.get('geolocation', {}).get('ip', 'N/A') }}";
+            var iframe = document.getElementById('camera-view');
+            var container = document.getElementById('camera-view-container');
+
+            // Set the iframe source to the IP address page
+            iframe.src = "http://" + ipAddress;
+
+            // Show the iframe container
+            container.style.display = "block";
+        }
+    </script>
 </body>
 </html>

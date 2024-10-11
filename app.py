@@ -113,6 +113,7 @@ def display_scan_result(ip):
     except (FileNotFoundError, json.JSONDecodeError):
         return render_template('scan_result.html', scan_result={})
 
+
 # Route to get summary data based on day and hour
 @app.route('/api/summary')
 def summary():
