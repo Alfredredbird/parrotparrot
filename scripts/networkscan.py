@@ -65,11 +65,11 @@ def get_host_info(host, nm):
         "code": 200,
         "ping_time": None,
         "open_ports": [],
-        "geolocation": {"Unknown"},  # Dummy data for now
-        "dns_info": {"Unknown"},  # Dummy data for now
-        "isp_info": "Unknown",  # Dummy data for now
-        "response_headers": {"Unknown"},  # Dummy data for now
-        "ssl_certificate": {"Unknown"},  # Dummy data for now
+        "geolocation": {},  # Dummy data for now
+        "dns_info": {},  # Dummy data for now
+        "isp_info": "",  # Dummy data for now
+        "response_headers": {},  # Dummy data for now
+        "ssl_certificate": {},  # Dummy data for now
         "timestamp": datetime.now().isoformat(),
         "device_type": "unknown",  # Default device type
     }
