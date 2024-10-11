@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Camera Scanner</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger mb-3">Logout</a>
+    <a href="{{ url_for('index') }}" class="btn btn-danger mb-3">Home</a>
+    <div class="container">
+        <div class="card">
+            <h2>Start IP Camera Scan</h2>
+            <button class="button" id="scanButton1">IP Camera Scan</button>
+        </div>
+        
+        <div class="card">
+            <h2>Device Scan</h2>
+            <button class="button" id="scanButton2">Device Scan</button>
+        </div>
+
+        <div class="card">
+            <h2>Network Scan</h2>
+            <button class="button" id="scanButton3">Network Scan</button>
+        </div>
+
+        <div class="card">
+            <h2>Security Scan</h2>
+            <button class="button" id="scanButton4">Security Scan</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("scanButton1").addEventListener("click", function() {
+            fetch('/ip-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    alert("IP Camera Scan started!");
+                } else {
+                    alert("Failed to start the scan.");
+                }
+            }).catch(error => {
+                alert("Error: " + error.message);
+            });
+        });
+
+        document.getElementById("scanButton2").addEventListener("click", function() {
+            fetch('/device-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    alert("Device Scan started!");
+                } else {
+                    alert("Failed to start the scan.");
+                }
+            }).catch(error => {
+                alert("Error: " + error.message);
+            });
+        });
+
+        document.getElementById("scanButton3").addEventListener("click", function() {
+            fetch('/network-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    alert("Network Scan started!");
+                } else {
+                    alert("Failed to start the scan.");
+                }
+            }).catch(error => {
+                alert("Error: " + error.message);
+            });
+        });
+
+        document.getElementById("scanButton4").addEventListener("click", function() {
+            fetch('/security-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    alert("Security Scan started!");
+                } else {
+                    alert("Failed to start the scan.");
+                }
+            }).catch(error => {
+                alert("Error: " + error.message);
+            });
+        });
+    </script>
+</body>
+</html>

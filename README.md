@@ -17,7 +17,8 @@ The default credentials are:
  - ✅ Add better graph arangement
  - Add OS/Device/Service scanning
  - ✅ Add search bar 
- - Rearange the scripts. (I want the scripts to be turned into modules that will be stored in `/modules`)
+ - ✅ Rearange the scripts. (I want the scripts to be turned into modules that will be stored in `/modules`)
+ - Fix/style the scan center
 
 # Credits
 got the flags from 

@@ -159,6 +159,11 @@ def analytics():
         return redirect(url_for('login')) 
     return render_template('index.html', ip_data={})
 
+@app.route('/scan_center')
+def scan_center():
+    if 'logged_in' not in session:
+        return redirect(url_for('login')) 
+    return render_template('scan_center.html', ip_data={})
 
 # Route to rescan an IP address
 @app.route('/rescan', methods=['POST'])
@@ -168,6 +173,16 @@ def rescan():
         # Run the scan.py script with the specified IP
         subprocess.Popen(['python.exe', 'scripts/rescan.py', '-ip', ip])
     return redirect(url_for('display_ip_data'))
+
+# scan for IP cameras with dorks
+@app.route('/ip-scan', methods=['POST'])
+def ip_scan():
+    try:
+        subprocess.run(["python.exe", "scripts/dork.py"], check=True)
+        return jsonify({"message": "Scan started"}), 200
+    except Exception as e:
+        return jsonify({"message": "Failed to start scan", "error": str(e)}), 500
+
 
 # Route to log out
 @app.route('/logout')

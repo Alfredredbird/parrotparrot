@@ -139,11 +139,13 @@
                                 {% elif device_type.lower().startswith('windows') %}
                                     <img src="{{ url_for('static', filename='device_icons/windows.png') }}" class="device-icon" alt="Windows">
                                 {% elif device_type.lower().startswith('mac') %}
-                                    <img src="{{ url_for('static', filename='device_icons/mac.png') }}" class="device-icon" alt="Windows">
+                                    <img src="{{ url_for('static', filename='device_icons/mac.png') }}" class="device-icon" alt="Mac">
                                 {% elif device_type.lower().startswith('ios') %}
-                                    <img src="{{ url_for('static', filename='device_icons/ios.png') }}" class="device-icon" alt="Windows">
+                                    <img src="{{ url_for('static', filename='device_icons/ios.png') }}" class="device-icon" alt="Ios">
                                 {% elif device_type.lower().startswith('android') %}
-                                    <img src="{{ url_for('static', filename='device_icons/android.png') }}" class="device-icon" alt="Windows">
+                                    <img src="{{ url_for('static', filename='device_icons/android.png') }}" class="device-icon" alt="Android">
+                                {% elif device_type.lower().startswith('ip_camera') %}
+                                    <img src="{{ url_for('static', filename='device_icons/ip_camera.png') }}" class="device-icon" alt="IP_Camera">
                                 {% else %}
                                     <img src="{{ url_for('static', filename='device_icons/unknown.png') }}" class="device-icon" alt="Unknown">
                                 {% endif %}

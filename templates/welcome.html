@@ -6,7 +6,111 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Home</title>
     <style>
-       
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Push items closer to the top */
+            align-items: center;
+            padding-top: 50px; /* Adjust padding to move items closer to the top */
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .button-container {
+            margin-bottom: 30px;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        form input[type="text"] {
+            width: 300px;
+            padding: 15px;
+            border-radius: 30px;
+            border: none;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        form input[type="text"]:focus {
+            width: 400px;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+        }
+
+        form button {
+            padding: 15px;
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        form button:hover {
+            background-color: #0077cc;
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        /* Animate search bar placeholder text */
+        form input[type="text"]::placeholder {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        form input[type="text"]:focus::placeholder {
+            opacity: 0;
+        }
+
+        #backgroundCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
     </style>
 </head>
 <body>
@@ -16,6 +120,7 @@
         <div class="button-container">
             <a href="{{ url_for('display_ip_data') }}" class="button">View IP Data</a>
             <a href="{{ url_for('analytics') }}" class="button">Analytics</a>
+            <a href="{{ url_for('scan_center') }}" class="button">Scan Center</a>
         </div>
         <form action="{{ url_for('run_ip_scan') }}" method="POST">
             <input type="text" name="ip" placeholder="Enter IP address" required>
@@ -30,7 +135,7 @@
         const ctx = canvas.getContext('2d');
 
         let particles = [];
-        const particleCount = 100; // Number of particles
+        const particleCount = 100;
         const colors = ['#00BFFF', '#1E90FF', '#4682B4', '#87CEFA'];
 
         canvas.width = window.innerWidth;
@@ -40,9 +145,9 @@
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 5 + 1; // Random size
-                this.speedX = Math.random() * 3 - 1.5; // Random horizontal speed
-                this.speedY = Math.random() * 3 - 1.5; // Random vertical speed
+                this.size = Math.random() * 5 + 1;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
                 this.color = colors[Math.floor(Math.random() * colors.length)];
             }
 
@@ -50,7 +155,6 @@
                 this.x += this.speedX;
                 this.y += this.speedY;
 
-                // Bounce off edges
                 if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
                 if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
             }
@@ -80,14 +184,14 @@
         }
 
         function drawLines() {
-            ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)'; // Bright cyan color for better visibility
-            ctx.lineWidth = 1.5; // Slightly thicker lines
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+            ctx.lineWidth = 1.5;
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
                     const dx = particles[i].x - particles[j].x;
                     const dy = particles[i].y - particles[j].y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 100) { // Draw lines if particles are within 100 pixels
+                    if (distance < 100) {
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
@@ -96,7 +200,6 @@
                 }
             }
         }
-
 
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
