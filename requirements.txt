@@ -5,3 +5,6 @@ json
 random
 threading
 python-nmap
+selenium
+beautifulsoup4 
+webdriver-manager
