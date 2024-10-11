@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Result for {{ scan_result.get('geolocation', {}).get('ip', 'Unknown IP') }}</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <style>
         body {
             background-color: #121212;
@@ -58,6 +59,10 @@
             border: none;
             margin-top: 20px;
         }
+        #map {
+            height: 400px; /* Adjust to your preference */
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -95,7 +100,39 @@
                 <p><strong>Organization:</strong> {{ scan_result.get('geolocation', {}).get('org', 'N/A') }}</p>
             </div>
         </div>
+        {% if scan_result.get('geolocation', {}).get('loc') %}
+        <div class="card mb-3">
+            <div class="card-header">Location Map</div>
+            <div class="card-body">
+                <div id="map"></div>
+                <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+                <script>
+                    window.onload = function() {
+                        var coordinates = "{{ scan_result.get('geolocation', {}).get('loc', '0,0') }}";
+                        
+                        // Ensure the coordinates are valid
+                        if (coordinates !== '0,0') {
+                            var coordsArray = coordinates.split(",");
+                            var lat = parseFloat(coordsArray[0]);
+                            var lon = parseFloat(coordsArray[1]);
 
+                            var map = L.map('map').setView([lat, lon], 13);
+
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            }).addTo(map);
+
+                            L.marker([lat, lon]).addTo(map)
+                                .bindPopup("Location: " + lat + ", " + lon)
+                                .openPopup();
+                        } else {
+                            document.getElementById('map').innerHTML = 'Location not available.';
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+        {% endif %}
         <!-- DNS Info Card -->
         <div class="card mb-3">
             <div class="card-header">DNS Info</div>
@@ -158,6 +195,7 @@
                 {% endif %}
             </div>
         </div>
+        
 
         <a href="{{ url_for('display_ip_data') }}" class="btn btn-danger d-block mx-auto">Back</a>
     </div>

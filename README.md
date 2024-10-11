@@ -28,3 +28,4 @@ after visiting `127.0.0.1:5000/display_ip_data` you should be able to see your c
 got the flags from 
 https://github.com/cristiroma/countries/tree/main/data/flags/PNG-32
 will be replaced soon
+
