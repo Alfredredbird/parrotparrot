@@ -166,7 +166,7 @@ def rescan():
     ip = request.form.get('ip')
     if ip:
         # Run the scan.py script with the specified IP
-        subprocess.Popen(['python.exe', 'scan.py', '-ip', ip])
+        subprocess.Popen(['python.exe', 'scripts/rescan.py', '-ip', ip])
     return redirect(url_for('display_ip_data'))
 
 # Route to log out
@@ -176,4 +176,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='192.168.12.185')
