@@ -4,6 +4,7 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By  # Import By
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
@@ -18,21 +19,33 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 # Start the WebDriver
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-# Function to perform Google search
-def google_search(query):
+# Function to perform Google search and handle pagination
+def google_search(query, pages=5, delay=5):
     search_url = f"https://www.google.com/search?q={query}"
     driver.get(search_url)
-    time.sleep(2)  # Wait for the page to load
+    time.sleep(2)  # Wait for the first page to load
 
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    all_results = []
 
-    results = []
-    for result in soup.find_all('div', class_='g'):
-        link = result.find('a')['href']
-        title = result.find('h3').text if result.find('h3') else 'No title'
-        results.append({'title': title, 'link': link})
+    for page in range(pages):
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-    return results
+        # Extract results from the current page
+        for result in soup.find_all('div', class_='g'):
+            link = result.find('a')['href']
+            title = result.find('h3').text if result.find('h3') else 'No title'
+            all_results.append({'title': title, 'link': link})
+
+        # Find the "Next" button and click it
+        try:
+            next_button = driver.find_element(By.ID, 'pnnext')  # Updated to use By.ID
+            next_button.click()
+            time.sleep(delay)  # Pause before scraping the next page
+        except Exception as e:
+            print(f"No more pages or error occurred: {e}")
+            break  # No more pages, exit the loop
+
+    return all_results
 
 # Function to extract IPs from links
 def extract_ips_from_links(links):
@@ -81,8 +94,8 @@ def save_ips_to_json(new_ips, filepath='saves/ips.json'):
 # Example camera dork query
 dork_query = 'inurl:/view/view.shtml'
 
-# Run the search
-results = google_search(dork_query)
+# Run the search, scrape 5 pages with a 5-second break between each
+results = google_search(dork_query, pages=5, delay=5)
 
 # Extract IPs from the search results
 extracted_ips = extract_ips_from_links(results)
