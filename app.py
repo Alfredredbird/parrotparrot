@@ -102,6 +102,35 @@ def run_ip_scan():
     # Redirect to display results on a new page
     return redirect(url_for('display_scan_result', ip=ip))
 
+@app.route('/edit_ip_data/<ip>', methods=['GET', 'POST'])
+def edit_ip_data(ip):
+    if 'logged_in' not in session:
+        return redirect(url_for('login'))
+
+    # Load the existing IP data
+    try:
+        with open('saves/ips.json', 'r') as file:
+            ip_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        ip_data = {}
+
+    # Check if IP exists in the data
+    scan_result = ip_data.get(ip, {})
+
+    if request.method == 'POST':
+        # Update the data based on form submission
+        updated_data = request.form.to_dict()
+        ip_data[ip] = updated_data
+
+        # Save the updated data back to the JSON file
+        with open('saves/ips.json', 'w') as file:
+            json.dump(ip_data, file, indent=4)
+
+        return redirect(url_for('display_scan_result', ip=ip))  # Redirect to updated scan result page
+
+    return render_template('edit_ip_data.html', ip=ip, scan_result=scan_result)
+
+
 # Route to display scan result
 @app.route('/scan_result/<ip>')
 def display_scan_result(ip):

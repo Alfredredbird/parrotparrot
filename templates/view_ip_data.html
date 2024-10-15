@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View IP Data - {{ ip }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body style="background-color: #121212; color: white;">
+    <div class="container mt-5">
+        <h1>IP Data for {{ ip }}</h1>
+
+        <ul class="list-group">
+            <li class="list-group-item">IP Address: {{ ip_data['geolocation']['ip'] }}</li>
+            <li class="list-group-item">Hostname: {{ ip_data['geolocation']['hostname'] }}</li>
+            <li class="list-group-item">City: {{ ip_data['geolocation']['city'] }}</li>
+            <li class="list-group-item">Region: {{ ip_data['geolocation']['region'] }}</li>
+            <li class="list-group-item">Country: {{ ip_data['geolocation']['country'] }}</li>
+            <li class="list-group-item">Location: {{ ip_data['geolocation']['loc'] }}</li>
+            <li class="list-group-item">Timezone: {{ ip_data['geolocation']['timezone'] }}</li>
+            <li class="list-group-item">Device Type: {{ ip_data['device_type'] }}</li>
+            <li class="list-group-item">Timestamp: {{ ip_data['timestamp'] }}</li>
+        </ul>
+
+        <a href="{{ url_for('edit_ip_data', ip=ip) }}" class="btn btn-warning mt-3">Edit</a>
+        <a href="{{ url_for('display_ip_data') }}" class="btn btn-danger mt-3">Back</a>
+    </div>
+</body>
+</html>
