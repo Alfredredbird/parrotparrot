@@ -1,8 +1,9 @@
 faker>=30.3.0
-flask
-requests
-python-nmap
-selenium
-beautifulsoup4 
-webdriver-manager
-netifaces
+flask>=3.0.3
+redis>=5.1.1
+requests>=2.32.3
+python-nmap>=0.7.1
+selenium>=4.25.0
+beautifulsoup4>=4.12.3
+webdriver-manager>=4.0.2
+netifaces>=0.11.0

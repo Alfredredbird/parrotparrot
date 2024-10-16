@@ -5,22 +5,15 @@ import socket
 import threading
 import time
 import ssl
-import redis  # Add Redis for caching results
 from datetime import datetime
 import nmap
 
-COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080, 7, 902, 88, 23, 53, 381, 69, 587, 1337, 20, 1025, 102, 110, 139, 135,
-                137, 143, 465, 593, 636, 691, 989, 993, 995, 158, 8096]
+COMMON_PORTS = [21, 22, 23, 25, 80, 443, 8080,7,902,88,23,53,381,69,587,1337,20,1025,102,110,139,135,137,143,465,593,636,691,989,993,995,158,8096]
 lock = threading.Lock()
-
-# Initialize Redis connection
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
-
 
 def generate_random_ip():
     """Generate a random IP address."""
     return f"{random.randint(1, 255)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 255)}"
-
 
 def get_geolocation(ip):
     """Fetch geolocation data for an IP address."""
@@ -30,7 +23,6 @@ def get_geolocation(ip):
     except requests.RequestException:
         return {}
 
-
 def get_dns_info(ip):
     """Fetch DNS information for an IP address."""
     try:
@@ -38,7 +30,6 @@ def get_dns_info(ip):
         return {"hostname": result[0], "aliases": result[1], "ip": result[2]}
     except socket.herror:
         return {}
-
 
 def get_isp_info(ip):
     """Fetch ISP information for an IP address."""
@@ -48,7 +39,6 @@ def get_isp_info(ip):
     except requests.RequestException:
         return "Unknown ISP"
 
-
 def get_response_headers(ip):
     """Fetch HTTP response headers for an IP address."""
     try:
@@ -56,7 +46,6 @@ def get_response_headers(ip):
         return dict(response.headers)
     except requests.RequestException:
         return {}
-
 
 def get_ssl_certificate(ip):
     """Fetch SSL certificate information for an HTTPS IP."""
@@ -69,9 +58,8 @@ def get_ssl_certificate(ip):
                     "issuer": dict(cert['issuer']),
                     "expiration": cert['notAfter']
                 }
-    except Exception as e:
-        return {"error": str(e)}
-
+    except Exception:
+        return {}
 
 def perform_port_scan(ip, ports):
     """Perform a fast scan on common ports to check if they are open."""
@@ -83,7 +71,6 @@ def perform_port_scan(ip, ports):
             if result == 0:  # If result is 0, the port is open
                 open_ports.append(port)
     return open_ports
-
 
 def check_ip_with_request(ip):
     """Check if an IP is reachable and handle redirection. Return status code, redirected URL if any, ping time, and timestamp."""
@@ -100,19 +87,18 @@ def check_ip_with_request(ip):
     except requests.RequestException:
         return {"code": 400, "ping_time": ping_time}
 
-
-def scan_device_type(ip):
-    """Use Nmap to scan an IP for detailed device information and update the Redis entry."""
+def scan_device_type(ip, ip_data, file_path):
+    """Use Nmap to scan an IP for detailed device information and update the JSON file with a 2-second timeout."""
     try:
         # Initialize the Nmap scanner
         nm = nmap.PortScanner()
-
+        
         # Scan for detailed information with a timeout of 2 seconds
         nm.scan(ip, arguments='-O -sS', timeout=10)
 
         # Extract information
         device_info = {}
-
+        
         # Get device type and OS information
         if 'osclass' in nm[ip]:
             os_info = nm[ip]['osclass']
@@ -124,7 +110,7 @@ def scan_device_type(ip):
 
         # Get hostnames
         device_info["hostnames"] = nm[ip].hostname() or "Unknown"
-
+        
         # Get MAC address and vendor
         if 'addresses' in nm[ip] and 'mac' in nm[ip]['addresses']:
             device_info["mac_address"] = nm[ip]['addresses']['mac']
@@ -138,73 +124,75 @@ def scan_device_type(ip):
             device_info["open_ports"] = {port: nm[ip]['tcp'][port]['name'] for port in nm[ip]['tcp']}
 
         if 'udp' in nm[ip]:
-            device_info.setdefault("open_ports", {}).update(
-                {port: nm[ip]['udp'][port]['name'] for port in nm[ip]['udp']})
+            device_info.setdefault("open_ports", {}).update({port: nm[ip]['udp'][port]['name'] for port in nm[ip]['udp']})
 
-        # Lock the thread and update the Redis entry
+        # Lock the thread and update the JSON data
         with lock:
-            # Retrieve current data from Redis
-            current_data = json.loads(redis_client.get(f"scan_result:{ip}"))
-            current_data.update(device_info)
-
-            # Save updated data back to Redis
-            redis_client.set(f"scan_result:{ip}", json.dumps(current_data))
-
+            ip_data[ip].update(device_info)
+            with open(file_path, 'w') as file:
+                json.dump(ip_data, file, indent=4)
+        
         print(f"Device details for {ip}: {device_info}")
-
+    
     except Exception as e:
         print(f"Failed to scan device details for {ip}: {e}")
+        ip_data[ip]["device_type"] = "Unknown"
 
 
-def scan_ip(ip):
-    """Scan an individual IP for HTTP status, open ports, geolocation, and DNS info, and store the results in Redis."""
+def scan_ip(ip, ip_data, file_path):
+    """Scan an individual IP for HTTP status, open ports, geolocation, and DNS info, and store the results."""
     print(f"Scanning IP: {ip}")
-
+    
     ip_info = check_ip_with_request(ip)
     open_ports = perform_port_scan(ip, COMMON_PORTS)
-
+    
     if open_ports:
         ip_info["open_ports"] = open_ports
-
+    
     ip_info["geolocation"] = get_geolocation(ip)
     ip_info["dns_info"] = get_dns_info(ip)
     ip_info["isp_info"] = get_isp_info(ip)
     ip_info["response_headers"] = get_response_headers(ip)
     ip_info["ssl_certificate"] = get_ssl_certificate(ip)
-
+    
     timestamp = datetime.now().isoformat()
     ip_info["timestamp"] = timestamp
 
     with lock:
-        # Store the scan result in Redis
-        redis_client.set(f"scan_result:{ip}", json.dumps(ip_info))
+        ip_data[ip] = ip_info
+        # Update the JSON file with the current state of ip_data
+        with open(file_path, 'w') as file:
+            json.dump(ip_data, file, indent=4)
 
-    # Run the detailed device scan
-    scan_device_type(ip)
+    scan_device_type(ip, ip_data, file_path)
+    
+def save_ip_to_json(file_path, num_ips):
+    """Generate and save unique IP addresses and their request status, redirection details, and port scan results to a JSON file."""
+    try:
+        with open(file_path, 'r') as file:
+            ip_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        ip_data = {}
 
-
-def save_ip_to_redis(num_ips):
-    """Generate and save unique IP addresses and their scan results to Redis."""
     threads = []
-
+    
     for _ in range(num_ips):
         new_ip = generate_random_ip()
-        if not redis_client.exists(f"scan_result:{new_ip}"):  # Check if IP is already scanned
-            thread = threading.Thread(target=scan_ip, args=(new_ip,))
+        if new_ip not in ip_data:
+            thread = threading.Thread(target=scan_ip, args=(new_ip, ip_data, file_path))
             threads.append(thread)
             thread.start()
 
     for thread in threads:
         thread.join()
 
-    print(
-        f"Added {num_ips} IP addresses with HTTP request status, geolocation, DNS info, ISP, SSL, and port scan results to Redis.")
+    print(f"Added {num_ips} IP addresses with HTTP request status, geolocation, DNS info, ISP, SSL, and port scan results to {file_path}.")
 
-
-start_scanning = False
+i = 1
 # runs in batches of 100
-while True:
-    if start_scanning:
-        save_ip_to_redis(100)
-        print("Taking a break...")
-        time.sleep(50)
+while True: 
+    if i != 1:
+     save_ip_to_json('saves/ips.json', 100)
+     print("Taking a break...")
+     time.sleep(50)
+    
