@@ -5,7 +5,7 @@ import socket
 import threading
 import time
 import ssl
-import redis  # Add Redis for caching results
+import redis
 from datetime import datetime
 import nmap
 
